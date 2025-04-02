@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tap the Dot Game</title>
+  <style>
+    :root {
+      --primary: #00d1b2;
+      --bg: #1a1a1a;
+      --accent: #fff;
+      --box: #292929;
+      --ad-bg: #2e2e2e;
+      --dot: #ff3860;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--accent);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      text-align: center;
+    }
+    h1 {
+      color: var(--primary);
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 0;
+      border: none;
+      border-radius: 5px;
+      background: var(--primary);
+      color: #fff;
+      transition: 0.2s;
+    }
+    button:hover {
+      background: #00b89c;
+    }
+    #gameArea {
+      position: relative;
+      width: 100%;
+      max-width: 340px;
+      height: 360px;
+      border: 2px solid var(--primary);
+      margin: 20px auto;
+      background: var(--box);
+      border-radius: 10px;
+      box-shadow: 0 0 10px #0006;
+    }
+    #dot {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--dot);
+      position: absolute;
+      cursor: pointer;
+      display: none;
+      box-shadow: 0 0 8px #000;
+    }
+    #ads {
+      margin-top: 15px;
+      width: 100%;
+      max-width: 340px;
+    }
+    #ads div {
+      background: var(--ad-bg);
+      border: 1px dashed #888;
+      padding: 10px;
+      margin: 6px 0;
+      font-size: 14px;
+      border-radius: 6px;
+      color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tap the Dot</h1>
+  <p>Tap the dot as fast as you can when it appears!</p>
+  <div id="gameArea"><div id="dot"></div></div>
+  <button id="startBtn">Start</button>
+  <p id="result"></p>
+  <p id="score"></p>
+  <div id="ads">
+    <div>Ad Placeholder - Banner</div>
+    <div>Ad Placeholder - Square</div>
+  </div>
+
+  <script>
+    const dot = document.getElementById('dot');
+    const gameArea = document.getElementById('gameArea');
+    const result = document.getElementById('result');
+    const score = document.getElementById('score');
+    const startBtn = document.getElementById('startBtn');
+
+    let startTime, highScore = null, totalTime = 0, attempts = 0;
+    let audioCtx = null;
+
+    function playBeep(freq = 600, duration = 100) {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration / 1000);
+    }
+
+    startBtn.addEventListener('click', () => {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      startGame();
+    });
+
+    function startGame() {
+      result.textContent = '';
+      dot.style.display = 'none';
+      let delay = Math.random() * 2000 + 1000;
+      setTimeout(showDot, delay);
+    }
+
+    function showDot() {
+      let x = Math.random() * (gameArea.clientWidth - 40);
+      let y = Math.random() * (gameArea.clientHeight - 40);
+      dot.style.left = x + 'px';
+      dot.style.top = y + 'px';
+      dot.style.display = 'block';
+      playBeep(800, 150);
+      startTime = Date.now();
+    }
+
+    dot.onclick = function () {
+      let reactionTime = (Date.now() - startTime) / 1000;
+      dot.style.display = 'none';
+      playBeep(400, 100);
+      totalTime += reactionTime;
+      attempts++;
+      if (highScore === null || reactionTime < highScore) {
+        highScore = reactionTime;
+      }
+      let avgTime = totalTime / attempts;
+      result.textContent = 'Reaction Time: ' + reactionTime.toFixed(3) + 's';
+      score.textContent = 'Best: ' + highScore.toFixed(3) + 's | Avg: ' + avgTime.toFixed(3) + 's';
+    };
+  </script>
+</body>
+</html>
